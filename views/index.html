@@ -3,6 +3,8 @@
 
 <head>
     <title>Socket.IO chat</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+        crossorigin="anonymous">
     <style>
         * {
             margin: 0;
@@ -49,6 +51,23 @@
         #messages li:nth-child(odd) {
             background: #eee;
         }
+
+        .user-ul-item {}
+
+        .user-li-item {
+            border: 1px solid rgb(235, 235, 235);
+            padding-left: 10px;
+        }
+
+        .users-container {
+            border: 2px solid black;
+            padding-left: 0px;
+            padding-right: 0px;
+        }
+
+        li {
+            list-style-type: none;
+        }
     </style>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
@@ -61,7 +80,7 @@
             var generalInfoSocket = io("/generalInfo");;
 
             $('form').submit(function () {
-                defaultSocket.emit('haydar', $('#m').val());
+                defaultSocket.emit('default', $('#m').val());
                 $('#m').val('');
                 return false;
             });
@@ -72,11 +91,13 @@
                 userContainerElement.html("");
 
                 var userListElement = $("<ul/>");
+                userListElement.addClass("user-ul-item");
 
-                for(var i=0; i<users.length;i++){
+                for (var i = 0; i < users.length; i++) {
                     var userElement = $("<li/>");
-                    userElement.prop("id",users[i].name);
+                    userElement.prop("id", users[i].name);
                     userElement.text(users[i].name);
+                    userElement.addClass("user-li-item");
                     userListElement.append(userElement);
                 }
                 userContainerElement.append(userListElement);
@@ -88,10 +109,15 @@
             });*/
         });
     </script>
-    <div id="userContainer"></div>
-    <form action="">
-        <input id="m" autocomplete="off" /><button>Send</button>
-    </form>
+    <div class="row">
+        <div id="userContainer" class="users-container col-md-2 col-xs-4 col-sm-3 col-lg-2 col-xl-1"></div>
+        <div id="mainContainer" class="main-container col-md-8 col-xs-4 col-sm-6 col-lg-8 col-xl-10">
+            <form action="">
+                <input id="m" autocomplete="off" /><button>Send</button>
+            </form>
+        </div>
+        <div id="roomContainer" class="room-container col-md-2 col-xs-4 col-sm-3 col-lg-2 col-xl-1"></div>
+    </div>
 </body>
 
 </html>

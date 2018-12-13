@@ -3,7 +3,6 @@ var http = require('http');
 http = http.Server(app);
 var io = require('socket.io')(http);
 
-app.set('view engine', 'pug')
 app.get('/', (req, res) => {
     res.sendFile(__dirname + "/views/index.html");
 });
@@ -12,7 +11,7 @@ var generalInfo = io.of("/generalInfo");
 
 var users = [];
 
-io.on('connection', (socket) => {
+generalInfo.on('connection', (socket) => {
     console.log(socket.client.id + " connected");
     users.push({ id: socket.client.id, name : socket.client.id });
     generalInfo.emit("userInfo", users);
@@ -23,8 +22,6 @@ io.on('connection', (socket) => {
         generalInfo.emit("userInfo",users);
     });
 });
-
-
 
 
 function getUser(id){
