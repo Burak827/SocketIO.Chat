@@ -3,16 +3,43 @@ var http = require('http');
 http = http.Server(app);
 var io = require('socket.io')(http);
 
+app.set('view engine', 'pug')
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + "/index.html");
+    res.sendFile(__dirname + "/views/index.html");
 });
 
-io.on('connection', function (socket) {
-    console.log('Someone connected');
-    socket.on("haydar", (msg) => {
-        socket.emit("haydar", msg);
+var generalInfo = io.of("/generalInfo");
+
+var users = [];
+
+io.on('connection', (socket) => {
+    console.log(socket.client.id + " connected");
+    users.push({ id: socket.client.id, name : socket.client.id });
+    generalInfo.emit("userInfo", users);
+
+    socket.on('disconnect', () => {
+        console.log(socket.client.id + " disconnected");
+        users.pop(getUser(socket.client.id));
+        generalInfo.emit("userInfo",users);
     });
 });
+
+
+
+
+function getUser(id){
+    for(let i = 0;i<users.length;i++){
+        if(users[i].id==id){
+            return i;
+        }else {
+            return null;
+        }
+    }
+}
+
+// io.on('connection', function (socket) {
+//     console.log('Someone connected');
+// });
 
 /*var nsp = io.of('/burak');
 nsp.on('connection', function (socket) {
