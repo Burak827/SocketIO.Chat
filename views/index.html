@@ -117,22 +117,20 @@
             });
 
             defaultSocket.on('newMessage', (newMsg) => {
+                var date = new Date(newMsg.date);
                 var messageListElement = $('#messageList');
                 var messageElement = $('<li/>');
                 var dateElement = $('<span/>');
 
                 dateElement.addClass("date-item");
-                dateElement.text(new Date(newMsg.date));
+                dateElement.text(date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds());
 
                 messageElement.addClass("user-li-item");
-
                 messageElement.text(newMsg);
                 messageElement.text(newMsg.channel + " -> " + newMsg.userName + " : " + newMsg.messageText);
                 messageElement.append(dateElement);
                 messageListElement.append(messageElement);
             });
-
-           
 
             generalInfoSocket.on('userInfo', (users) => {
                 var userContainerElement = $('#userContainer');
@@ -166,7 +164,6 @@
                     chkSubscribed.addClass("room-checkbox");
                     chkSubscribed.change(onRoomCheckBoxChanged);
 
-
                     // roomElement.prop("id", rooms[i].name);
                     roomElement.text(rooms[i].name);
                     roomElement.addClass("user-li-item");
@@ -196,11 +193,11 @@
                 messageInput.width(messagesContainer.width());
             }
 
-            function onRoomCheckBoxChanged(e){
-                if(e.target.checked){
-                    defaultSocket.emit("joinRoom",$(e.target).attr("roomname"));
-                }else{
-                    defaultSocket.emit("leaveRoom",$(e.target).attr("roomname"));
+            function onRoomCheckBoxChanged(e) {
+                if (e.target.checked) {
+                    defaultSocket.emit("joinRoom", $(e.target).attr("roomname"));
+                } else {
+                    defaultSocket.emit("leaveRoom", $(e.target).attr("roomname"));
                 }
             }
         });
