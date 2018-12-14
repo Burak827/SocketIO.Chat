@@ -12,30 +12,34 @@
             box-sizing: border-box;
         }
 
+        .date-item {
+            float: right;
+        }
+
         body {
             font: 13px Helvetica, Arial;
         }
 
         form {
-            background: #000;
+            /* background: #000;
             padding: 3px;
             position: fixed;
             bottom: 0;
-            width: 100%;
+            width: 100%; */
         }
 
         form input {
-            border: 0;
+            /* border: 0;
             padding: 10px;
             width: 90%;
-            margin-right: .5%;
+            margin-right: .5%; */
         }
 
         form button {
-            width: 9%;
+            /* width: 9%;
             background: rgb(130, 224, 255);
             border: none;
-            padding: 10px;
+            padding: 10px; */
         }
 
         #messages {
@@ -63,6 +67,29 @@
             border: 2px solid black;
             padding-left: 0px;
             padding-right: 0px;
+            height: 100%;
+        }
+
+        .messages-container {
+            border: 2px solid black;
+            padding-left: 0px;
+            padding-right: 0px;
+            height: 100%;
+        }
+
+        .room-container {
+            border: 2px solid black;
+            padding-left: 0px;
+            padding-right: 0px;
+            height: 100%;
+        }
+
+        .height-100 {
+            height: 100%;
+        }
+
+        .room-checkbox {
+            float: left;
         }
 
         li {
@@ -75,19 +102,40 @@
 
 <body>
     <script>
+        $(window).resize(function () {
+            initUI();
+        });
+
         $(function () {
             var defaultSocket = io("localhost:827");
             var generalInfoSocket = io("/generalInfo");;
 
             $('form').submit(function () {
-                defaultSocket.emit('default', $('#m').val());
+                defaultSocket.emit('message', $('#m').val());
                 $('#m').val('');
                 return false;
             });
-            generalInfoSocket.on('userInfo', (users) => {
-                console.log(users);
 
-                var userContainerElement = $('#userContainer')
+            defaultSocket.on('newMessage', (newMsg) => {
+                var messageListElement = $('#messageList');
+                var messageElement = $('<li/>');
+                var dateElement = $('<span/>');
+
+                dateElement.addClass("date-item");
+                dateElement.text(new Date(newMsg.date));
+
+                messageElement.addClass("user-li-item");
+
+                messageElement.text(newMsg);
+                messageElement.text(newMsg.channel + " -> " + newMsg.userName + " : " + newMsg.messageText);
+                messageElement.append(dateElement);
+                messageListElement.append(messageElement);
+            });
+
+           
+
+            generalInfoSocket.on('userInfo', (users) => {
+                var userContainerElement = $('#userContainer');
                 userContainerElement.html("");
 
                 var userListElement = $("<ul/>");
@@ -95,7 +143,7 @@
 
                 for (var i = 0; i < users.length; i++) {
                     var userElement = $("<li/>");
-                    userElement.prop("id", users[i].name);
+                    userElement.prop("id", users[i].id);
                     userElement.text(users[i].name);
                     userElement.addClass("user-li-item");
                     userListElement.append(userElement);
@@ -104,17 +152,73 @@
                 // $('#roomsInfo').append($('<li>').text(msg));
             });
 
-            /*burakSocket.on('def', (msg) => {
-                $('#messages').append($('<li>').text(msg));
-            });*/
+            generalInfoSocket.on('roomInfo', (rooms) => {
+                var roomContainerElement = $('#roomContainer');
+                roomContainerElement.html("");
+                var roomListElement = $("<ul/>");
+                roomListElement.addClass("user-ul-item");
+
+                for (var i = 0; i < rooms.length; i++) {
+                    var roomElement = $("<li/>");
+                    var chkSubscribed = $("<input/>");
+                    chkSubscribed.attr("type", "checkbox");
+                    chkSubscribed.attr("roomName", rooms[i].name);
+                    chkSubscribed.addClass("room-checkbox");
+                    chkSubscribed.change(onRoomCheckBoxChanged);
+
+
+                    // roomElement.prop("id", rooms[i].name);
+                    roomElement.text(rooms[i].name);
+                    roomElement.addClass("user-li-item");
+
+                    roomElement.append(chkSubscribed);
+                    roomListElement.append(roomElement);
+                }
+                roomContainerElement.append(roomListElement);
+            });
+
+            initUI();
+
+            function initUI() {
+                var messageBoxHeight = 30;
+                var mainContainer = $("#mainContainer");
+                var messagesContainer = $("#messagesContainer");
+                var messageBox = $("#messageBox");
+                var messageList = $("#messageList");
+                var windowHeight = window.innerHeight;
+                var messageInput = $("#m");
+                // var sendButton = $("#sendButton");
+
+                mainContainer.height(window.innerHeight);
+
+                messageList.height(messagesContainer.height() - messageBoxHeight);
+                messageBox.height(messageBoxHeight);
+                messageInput.width(messagesContainer.width());
+            }
+
+            function onRoomCheckBoxChanged(e){
+                if(e.target.checked){
+                    defaultSocket.emit("joinRoom",$(e.target).attr("roomname"));
+                }else{
+                    defaultSocket.emit("leaveRoom",$(e.target).attr("roomname"));
+                }
+            }
         });
+
     </script>
-    <div class="row">
+    <div id="mainContainer">
         <div id="userContainer" class="users-container col-md-2 col-xs-4 col-sm-3 col-lg-2 col-xl-1"></div>
-        <div id="mainContainer" class="main-container col-md-8 col-xs-4 col-sm-6 col-lg-8 col-xl-10">
-            <form action="">
-                <input id="m" autocomplete="off" /><button>Send</button>
-            </form>
+        <div id="messagesContainer" class="messages-container col-md-8 col-xs-4 col-sm-6 col-lg-8 col-xl-10">
+            <ul id="messageList" class="message-list">
+            </ul>
+
+            <div id="messageBox" class="message-box">
+                <form class="height-100" action="">
+                    <span>
+                        <input class="height-100" id="m" autocomplete="off" />
+                    </span>
+                </form>
+            </div>
         </div>
         <div id="roomContainer" class="room-container col-md-2 col-xs-4 col-sm-3 col-lg-2 col-xl-1"></div>
     </div>
