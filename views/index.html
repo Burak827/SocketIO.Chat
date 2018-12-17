@@ -14,185 +14,10 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
         crossorigin="anonymous"></script>
     <script src="/socket.io/socket.io.js"></script>
+    <script src="main.js"></script>
 </head>
 
 <body>
-    <script>
-        var globalDefaultSocket;
-        $(window).resize(function () {
-            initUI();
-        });
-
-        $(function () {
-            var defaultSocket = globalDefaultSocket = io("localhost:827");
-            var generalInfoSocket = io("/generalInfo");;
-
-            $('#messageBoxForm').submit(function () {
-                let message = $('#m').val();
-                if (message != "") {
-                    defaultSocket.emit('message', message);
-                    $('#m').val('');
-                }
-                return false;
-            });
-
-            defaultSocket.on('newMessage', (newMsg) => {
-                var date = new Date(newMsg.date);
-                var messageListElement = $('#nav-home');
-                var messageElement = $('<li/>');
-                var dateElement = $('<span/>');
-
-                var hour = date.getHours();
-                var minute = date.getMinutes();
-                var second = date.getSeconds();
-                hour = (hour < 10) ? '0' + hour.toString() : hour.toString()
-                minute = (minute < 10) ? '0' + minute.toString() : minute.toString()
-                second = (second < 10) ? '0' + second.toString() : second.toString()
-
-                dateElement.addClass("date-item");
-                dateElement.addClass("list-group");
-                dateElement.text(hour + ":" + minute + ":" + second);
-
-                messageElement.addClass("user-li-item");
-                messageElement.addClass("list-group-item");
-                messageElement.text(newMsg);
-                messageElement.text(newMsg.channel + " -> " + newMsg.userName + " : " + newMsg.messageText);
-                messageElement.append(dateElement);
-                messageListElement.append(messageElement);
-            });
-
-            generalInfoSocket.on('userInfo', (users) => {
-                var userContainerElement = $('#userContainer');
-                var userListContainerElement = $('#userListContainer');
-                userListContainerElement.html("");
-
-                var userListElement = $("<ul/>");
-                userListElement.addClass("user-ul-item");
-                userListElement.addClass("list-group");
-                userListElement.addClass("list-group-flush");
-
-                for (var i = 0; i < users.length; i++) {
-                    var userElement = $("<li/>");
-                    userElement.prop("id", users[i].id);
-                    userElement.text(users[i].name);
-                    userElement.addClass("user-li-item");
-                    userElement.addClass("list-group-item");
-                    userListElement.append(userElement);
-                }
-
-                userListContainerElement.append(userListElement);
-                userContainerElement.append(userListContainerElement);
-                // $('#roomsInfo').append($('<li>').text(msg));
-            });
-
-            generalInfoSocket.on('roomInfo', (rooms) => {
-                var roomListContainerElement = $('#roomListContainer');
-                roomListContainerElement.html("");
-                var roomListElement = $("<div/>");
-                roomListElement.addClass("user-ul-item");
-                roomListElement.addClass("list-group");
-                roomListElement.addClass("list-group-flush");
-
-                for (var i = 0; i < rooms.length; i++) {
-                    var roomElement = $("<li/>");
-                    var btnRemoveRoom = $("<button/>");
-                    var btnJoinRoom = $("<button/>");
-
-                    // var chkSubscribed = $("<input/>");
-                    // var lblSubscribed = $("<label/>");
-                    // chkSubscribed.attr("type", "checkbox");
-                    // chkSubscribed.attr("roomName", rooms[i].name);
-                    // chkSubscribed.addClass("room-checkbox");
-                    // chkSubscribed.addClass("form-check-input");
-                    // chkSubscribed.change(onRoomCheckBoxChanged);
-                    // lblSubscribed.addClass("form-check-label");
-                    // lblSubscribed.text(rooms[i].name);
-                    btnRemoveRoom.attr("roomName", rooms[i].name);
-                    btnRemoveRoom.addClass("btn btn-danger btn-sm float-left oi oi-x");
-                    btnRemoveRoom.click((e) => {
-                        removeNewRoomClicked(e.currentTarget.getAttribute("roomname"));
-                    });
-
-                    btnJoinRoom.attr("roomName", rooms[i].name);
-                    btnJoinRoom.addClass("btn btn-sm btn-success float-right oi oi-comment-square");
-                    btnJoinRoom.click((e) => {
-                        joinRoom(e.currentTarget.getAttribute("roomname"));
-                    });
-
-                    // roomElement.prop("id", rooms[i].name);
-                    // roomElement.addClass("user-li-item");
-                    roomElement.addClass("list-group-item list-group-item-action text-center");
-                    roomElement.text(rooms[i].name);
-                    // roomItemElement.append(chkSubscribed);
-                    // roomItemElement.append(lblSubscribed);
-                    // roomElement.append(roomItemElement);
-                    roomElement.append(btnRemoveRoom);
-                    roomElement.append(btnJoinRoom);
-                    roomListElement.append(roomElement);
-                }
-                roomListContainerElement.append(roomListElement);
-            });
-
-            initUI();
-        });
-
-        function initUI() {
-            var messageBoxHeight = 33;
-            var mainContainer = $("#mainContainer");
-            var messagesContainer = $("#messagesContainer");
-            var messageBox = $("#messageBox");
-            var messageList = $("#messageList");
-            var userContainer = $("#userContainer");
-
-            var windowHeight = window.innerHeight;
-            var messageInput = $("#m");
-            // var sendButton = $("#sendButton");
-
-            mainContainer.height(window.innerHeight);
-
-            $("#roomContainer").height((mainContainer.height() / 2) - 2);
-            $("#x").height((mainContainer.height() / 2) - 2);
-
-            // messageList.height(messagesContainer.height() - messageBoxHeight);
-            messageList.addClass("list-group-flush");
-            messageList.addClass("list-group");
-            messageBox.height(messageBoxHeight);
-
-            var messageListElements = $(".message-list");
-
-            for (var i = 0; i < messageListElements.length; i++) {
-                var messageListElement = $(messageListElements[i]);
-                messageListElement.height(window.innerHeight - (messageListElement[0].offsetTop + $("#messageBox").height()) - 3);
-            }
-
-            // messageBox.width(messageListElements.width());
-        }
-
-        function addNewRoomClicked() {
-            var roomName = $("#roomName").val();
-            var command = "/newRoom";
-            addOrRemoveRoom(command, roomName);
-            $("#roomName").val("");
-            $("#addRoomModal").modal("hide");
-        }
-
-        function removeNewRoomClicked(roomname) {
-            var command = "/closeroom";
-            addOrRemoveRoom(command, roomname);
-        }
-
-        function addOrRemoveRoom(command, roomName) {
-            globalDefaultSocket.emit("message", command + " " + roomName);
-        }
-
-        function joinRoom(roomName) {
-            globalDefaultSocket.emit("joinRoom", roomName);
-        }
-
-         function leaveRoom(roomName) {
-            globalDefaultSocket.emit("leaveRoom", roomName);
-        }
-    </script>
     <div class="container">
         <div id="mainContainer" class="row">
             <div class="col-md-4 col-xs-5 col-sm-4 col-lg-4 col-xl-3" style="padding-right: 0px;">
@@ -216,22 +41,47 @@
                 </div>
             </div>
             <div id="messagesContainer" class="messages-container col-md-8 col-xs-7 col-sm-8 col-lg-8 col-xl-9">
-                <nav>
-                    <div class="nav nav-tabs" id="nav-tab" role="tablist">
-                        <a class="nav-item nav-link active tab-title" id="nav-home-tab" data-toggle="tab" href="#nav-home"
-                            role="tab" aria-controls="nav-home" aria-selected="true">Home</a>
+                <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="pills-home-tab" data-toggle="pill" href="#pills-home" role="tab"
+                            aria-controls="pills-home" aria-selected="true">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="pills-profile-tab" data-toggle="pill" href="#pills-profile" role="tab"
+                            aria-controls="pills-profile" aria-selected="false">Profile</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="pills-contact-tab" data-toggle="pill" href="#pills-contact" role="tab"
+                            aria-controls="pills-contact" aria-selected="false">Contact</a>
+                    </li>
+                </ul>
+                <div class="tab-content" id="pills-tabContent">
+                    <div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
+                        <div id="messageBox" class="message-box">
+                            <form id="messageBoxForm" class="height-100">
+                                <span>
+                                    <input class="height-100 width-100" id="m" autocomplete="off" value="ADFASDFADF" />
+                                </span>
+                            </form>
+                        </div>
                     </div>
-                </nav>
-                <div class="tab-content" id="nav-tabContent">
-                    <div class="tab-pane  message-list fade show active" id="nav-home" id="messageList" role="tabpanel"
-                        aria-labelledby="nav-home-tab">
+                    <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
+                        <div id="messageBox" class="message-box">
+                            <form id="messageBoxForm" class="height-100">
+                                <span>
+                                    <input class="height-100 width-100" id="m" autocomplete="off" value="ADFASDFADF" />
+                                </span>
+                            </form>
+                        </div>
                     </div>
-                    <div id="messageBox" class="message-box">
-                        <form id="messageBoxForm" class="height-100">
-                            <span>
-                                <input class="height-100 width-100" id="m" autocomplete="off" />
-                            </span>
-                        </form>
+                    <div class="tab-pane fade" id="pills-contact" role="tabpanel" aria-labelledby="pills-contact-tab">
+                        <div id="messageBox" class="message-box">
+                            <form id="messageBoxForm" class="height-100">
+                                <span>
+                                    <input class="height-100 width-100" id="m" autocomplete="off" value="ADFASDFADF" />
+                                </span>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
