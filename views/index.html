@@ -4,6 +4,7 @@
 <head>
     <title>Socket.IO chat</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <link rel="stylesheet" href="open-iconic-master/font/css/open-iconic-bootstrap.css">
     <style>
         * {
             margin: 0;
@@ -17,7 +18,7 @@
 
         body {
             font: 13px Helvetica, Arial;
-            overflow: hidden;
+            background-color: aquamarine;
         }
 
         form {
@@ -64,28 +65,27 @@
         }
 
         .users-container {
-            border: 1px solid black;
-            padding-left: 0px;
-            padding-right: 0px;
-            height: 100%;
+            height: 50%;
         }
 
         .messages-container {
-            border: 1px solid black;
+            background-color: white;
+            border: 1px solid #e6e9ec;
             padding-left: 0px;
             padding-right: 0px;
             height: 100%;
         }
 
         .room-container {
-            border: 1px solid black;
-            padding-left: 0px;
-            padding-right: 0px;
-            height: 100%;
+             height: 50%;
         }
 
         .height-100 {
             height: 100%;
+        }
+
+        .width-100 {
+            width: 100%;
         }
 
         .room-checkbox {
@@ -93,28 +93,36 @@
         }
 
         .message-list {
+            border: 1px solid #f3f4f6;
             margin-bottom: 0px;
+            overflow-y: auto;
         }
 
         li {
             list-style-type: none;
         }
     </style>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
+        crossorigin="anonymous"></script>
     <script src="/socket.io/socket.io.js"></script>
-    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
 </head>
 
 <body>
     <script>
+        var globalDefaultSocket;
         $(window).resize(function () {
             initUI();
         });
 
         $(function () {
-            var defaultSocket = io("localhost:827");
+            var defaultSocket = globalDefaultSocket = io("localhost:827");
             var generalInfoSocket = io("/generalInfo");;
 
-            $('form').submit(function () {
+            $('#messageBoxForm').submit(function () {
                 defaultSocket.emit('message', $('#m').val());
                 $('#m').val('');
                 return false;
@@ -122,13 +130,20 @@
 
             defaultSocket.on('newMessage', (newMsg) => {
                 var date = new Date(newMsg.date);
-                var messageListElement = $('#messageList');
+                var messageListElement = $('#nav-home');
                 var messageElement = $('<li/>');
                 var dateElement = $('<span/>');
 
+                var hour = date.getHours();
+                var minute = date.getMinutes();
+                var second = date.getSeconds();
+                hour = (hour < 10) ? '0' + hour.toString() : hour.toString()
+                minute = (minute < 10) ? '0' + minute.toString() : minute.toString()
+                second = (second < 10) ? '0' + second.toString() : second.toString()
+
                 dateElement.addClass("date-item");
                 dateElement.addClass("list-group");
-                dateElement.text(date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds());
+                dateElement.text(hour + ":" + minute + ":" + second);
 
                 messageElement.addClass("user-li-item");
                 messageElement.addClass("list-group-item");
@@ -140,11 +155,13 @@
 
             generalInfoSocket.on('userInfo', (users) => {
                 var userContainerElement = $('#userContainer');
-                userContainerElement.html("");
+                var userListContainerElement = $('#userListContainer');
+                userListContainerElement.html("");
 
                 var userListElement = $("<ul/>");
                 userListElement.addClass("user-ul-item");
                 userListElement.addClass("list-group");
+                userListElement.addClass("list-group-flush");
 
                 for (var i = 0; i < users.length; i++) {
                     var userElement = $("<li/>");
@@ -155,92 +172,171 @@
                     userListElement.append(userElement);
                 }
 
-                userContainerElement.append(userListElement);
+                userListContainerElement.append(userListElement);
+                userContainerElement.append(userListContainerElement);
                 // $('#roomsInfo').append($('<li>').text(msg));
             });
 
-
-
             generalInfoSocket.on('roomInfo', (rooms) => {
-                var roomContainerElement = $('#roomContainer');
-                roomContainerElement.html("");
-                var roomListElement = $("<ul/>");
+                var roomListContainerElement = $('#roomListContainer');
+                roomListContainerElement.html("");
+                var roomListElement = $("<div/>");
                 roomListElement.addClass("user-ul-item");
                 roomListElement.addClass("list-group");
+                roomListElement.addClass("list-group-flush");
 
                 for (var i = 0; i < rooms.length; i++) {
-                    var roomItemElement = $("<div/>");
                     var roomElement = $("<li/>");
-                    var chkSubscribed = $("<input/>");
-                    var lblSubscribed = $("<label/>");
-                    chkSubscribed.attr("type", "checkbox");
-                    chkSubscribed.attr("roomName", rooms[i].name);
-                    chkSubscribed.addClass("room-checkbox");
-                    chkSubscribed.addClass("form-check-input");
-                    chkSubscribed.change(onRoomCheckBoxChanged);
-                    lblSubscribed.addClass("form-check-label");
-                    lblSubscribed.text(rooms[i].name);
-
-
+                    var btnRemoveRoom = $("<button/>");
+                    // var chkSubscribed = $("<input/>");
+                    // var lblSubscribed = $("<label/>");
+                    // chkSubscribed.attr("type", "checkbox");
+                    // chkSubscribed.attr("roomName", rooms[i].name);
+                    // chkSubscribed.addClass("room-checkbox");
+                    // chkSubscribed.addClass("form-check-input");
+                    // chkSubscribed.change(onRoomCheckBoxChanged);
+                    // lblSubscribed.addClass("form-check-label");
+                    // lblSubscribed.text(rooms[i].name);
+                    btnRemoveRoom.attr("roomName", rooms[i].name);
+                    btnRemoveRoom.addClass("btn btn-danger btn-sm float-right oi oi-x");
+                    btnRemoveRoom.click((e) => {
+                        leaveNewRoomClicked(e.currentTarget.getAttribute("roomname"));
+                    });
                     // roomElement.prop("id", rooms[i].name);
-                    roomElement.addClass("user-li-item");
-                    roomElement.addClass("list-group-item");
-                    roomItemElement.addClass("form-check");
-                    roomItemElement.append(chkSubscribed);
-                    roomItemElement.append(lblSubscribed);
-                    roomElement.append(roomItemElement);
+                    // roomElement.addClass("user-li-item");
+                    roomElement.addClass("list-group-item list-group-item-action");
+                    roomElement.text(rooms[i].name);
+                    // roomItemElement.append(chkSubscribed);
+                    // roomItemElement.append(lblSubscribed);
+                    // roomElement.append(roomItemElement);
+                    roomElement.append(btnRemoveRoom);
                     roomListElement.append(roomElement);
                 }
-                roomContainerElement.append(roomListElement);
+                roomListContainerElement.append(roomListElement);
             });
 
             initUI();
-
-            function initUI() {
-                var messageBoxHeight = 30;
-                var mainContainer = $("#mainContainer");
-                var messagesContainer = $("#messagesContainer");
-                var messageBox = $("#messageBox");
-                var messageList = $("#messageList");
-                var windowHeight = window.innerHeight;
-                var messageInput = $("#m");
-                // var sendButton = $("#sendButton");
-
-                mainContainer.height(window.innerHeight);
-                mainContainer.addClass("row");
-
-                messageList.height(messagesContainer.height() - messageBoxHeight);
-                messageList.addClass("list-group-flush");
-                messageList.addClass("list-group");
-                messageBox.height(messageBoxHeight);
-                messageInput.width(messagesContainer.width());
-            }
-
-            function onRoomCheckBoxChanged(e) {
-                if (e.target.checked) {
-                    defaultSocket.emit("joinRoom", $(e.target).attr("roomname"));
-                } else {
-                    defaultSocket.emit("leaveRoom", $(e.target).attr("roomname"));
-                }
-            }
         });
 
-    </script>
-    <div id="mainContainer">
-        <div id="userContainer" class="users-container col-md-3 col-xs-4 col-sm-3 col-lg-3 col-xl-2"></div>
-        <div id="messagesContainer" class="messages-container col-md-6 col-xs-4 col-sm-6 col-lg-6 col-xl-8">
-            <ul id="messageList" class="message-list">
-            </ul>
+        function initUI() {
+            var messageBoxHeight = 33;
+            var mainContainer = $("#mainContainer");
+            var messagesContainer = $("#messagesContainer");
+            var messageBox = $("#messageBox");
+            var messageList = $("#messageList");
+            var userContainer = $("#userContainer");
 
-            <div id="messageBox" class="message-box">
-                <form class="height-100" action="">
-                    <span>
-                        <input class="height-100" id="m" autocomplete="off" />
-                    </span>
-                </form>
+            var windowHeight = window.innerHeight;
+            var messageInput = $("#m");
+            // var sendButton = $("#sendButton");
+
+            mainContainer.height(window.innerHeight);
+
+            $("#roomContainer").height((mainContainer.height() / 2)-2);
+            $("#x").height((mainContainer.height() / 2)-2);
+
+            // messageList.height(messagesContainer.height() - messageBoxHeight);
+            messageList.addClass("list-group-flush");
+            messageList.addClass("list-group");
+            messageBox.height(messageBoxHeight);
+
+            var messageListElements = $(".message-list");
+
+            for (var i = 0; i < messageListElements.length; i++) {
+                var messageListElement = $(messageListElements[i]);
+                messageListElement.height(window.innerHeight - (messageListElement[0].offsetTop + $("#messageBox").height()));
+            }
+
+            // messageBox.width(messageListElements.width());
+        }
+
+        function addNewRoomClicked() {
+            var roomName = $("#roomName").val();
+            var command = "/newRoom";
+            addOrRemoveRoom(command, roomName);
+            $("#roomName").val("");
+            $("#addRoomModal").modal("hide");
+        }
+
+        function leaveNewRoomClicked(roomname) {
+            var command = "/closeroom";
+            addOrRemoveRoom(command, roomname);
+        }
+
+        function addOrRemoveRoom(command, roomName) {
+            globalDefaultSocket.emit("message", command + " " + roomName);
+        }
+    </script>
+    <div class="container">
+        <div id="mainContainer" class="row">
+            <div class="col-md-4 col-xs-5 col-sm-4 col-lg-4 col-xl-3" style="padding-right: 0px;">
+                <div id="roomContainer" class="room-container card">
+                    <div class="card-body" style="overflow: auto;">
+                        <h5 class="card-title">Rooms
+                            <button type="button" class="btn btn-success oi float-right oi-plus" data-toggle="modal"
+                                data-target="#addRoomModal"></button>
+                        </h5>
+                        <div id="roomListContainer">
+                        </div>
+                    </div>
+                </div>
+                <div id="x" class="card">
+                    <div id="userContainer" class="users-container card-body">
+                        <h5 class="card-title">Users
+                        </h5>
+                        <div id="userListContainer" style="overflow:auto">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="messagesContainer" class="messages-container col-md-8 col-xs-7 col-sm-8 col-lg-8 col-xl-9">
+                <nav>
+                    <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                        <a class="nav-item nav-link active" id="nav-home-tab" data-toggle="tab" href="#nav-home" role="tab"
+                            aria-controls="nav-home" aria-selected="true">Home</a>
+                    </div>
+                </nav>
+                <div class="tab-content" id="nav-tabContent">
+                    <div class="tab-pane  message-list fade show active" id="nav-home" id="messageList" role="tabpanel"
+                        aria-labelledby="nav-home-tab">
+                    </div>
+                    <div id="messageBox" class="message-box">
+                        <form id="messageBoxForm" class="height-100" action="">
+                            <span>
+                                <input class="height-100 width-100" id="m" autocomplete="off" />
+                            </span>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div id="addRoomModal" class="modal" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Add a room</h5>
+
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form onsubmit="addNewRoomClicked()" class="form-horizontal">
+                                <div class="form-group">
+                                    <label for="roomName">Room Name</label>
+                                    <input id="roomName" type="text" class="form-control">
+                                    </input>
+                                </div>
+                            </form>
+
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-success" onclick="addNewRoomClicked()">Add</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <div id="roomContainer" class="room-container col-md-3 col-xs-4 col-sm-3 col-lg-3 col-xl-2"></div>
     </div>
 </body>
 
