@@ -127,18 +127,6 @@ function getUser(id) {
     return null;
 }
 
-// io.on('connection', function (socket) {
-//     console.log('Someone connected');
-// });
-
-/*var nsp = io.of('/burak');
-nsp.on('connection', function (socket) {
-    console.log('someone connected to ' + socket.nsp.name);
-    socket.join('some room');
-    socket.join('some room2');
-    // synchronousSpam(socket, 111);
-});*/
-
 var synchronousSpam = (socket, length, i) => {
     if (i === undefined) {
         i = 0;

@@ -5,103 +5,8 @@
     <title>Socket.IO chat</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
     <link rel="stylesheet" href="open-iconic-master/font/css/open-iconic-bootstrap.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    <link rel="stylesheet" href="site.css">
 
-        .date-item {
-            float: right;
-        }
-
-        body {
-            font: 13px Helvetica, Arial;
-            background-color: aquamarine;
-        }
-
-        form {
-            /* background: #000;
-            padding: 3px;
-            position: fixed;
-            bottom: 0;
-            width: 100%; */
-        }
-
-        form input {
-            /* border: 0;
-            padding: 10px;
-            width: 90%;
-            margin-right: .5%; */
-        }
-
-        form button {
-            /* width: 9%;
-            background: rgb(130, 224, 255);
-            border: none;
-            padding: 10px; */
-        }
-
-        #messages {
-            list-style-type: none;
-            margin: 0;
-            padding: 0;
-        }
-
-        #messages li {
-            padding: 5px 10px;
-        }
-
-        #messages li:nth-child(odd) {
-            background: #eee;
-        }
-
-        .user-ul-item {}
-
-        .user-li-item {
-            border: 1px solid rgb(235, 235, 235);
-            padding-left: 10px;
-        }
-
-        .users-container {
-            height: 50%;
-        }
-
-        .messages-container {
-            background-color: white;
-            border: 1px solid #e6e9ec;
-            padding-left: 0px;
-            padding-right: 0px;
-            height: 100%;
-        }
-
-        .room-container {
-             height: 50%;
-        }
-
-        .height-100 {
-            height: 100%;
-        }
-
-        .width-100 {
-            width: 100%;
-        }
-
-        .room-checkbox {
-            float: left;
-        }
-
-        .message-list {
-            border: 1px solid #f3f4f6;
-            margin-bottom: 0px;
-            overflow-y: auto;
-        }
-
-        li {
-            list-style-type: none;
-        }
-    </style>
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
         crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
@@ -123,8 +28,11 @@
             var generalInfoSocket = io("/generalInfo");;
 
             $('#messageBoxForm').submit(function () {
-                defaultSocket.emit('message', $('#m').val());
-                $('#m').val('');
+                let message = $('#m').val();
+                if (message != "") {
+                    defaultSocket.emit('message', message);
+                    $('#m').val('');
+                }
                 return false;
             });
 
@@ -188,6 +96,8 @@
                 for (var i = 0; i < rooms.length; i++) {
                     var roomElement = $("<li/>");
                     var btnRemoveRoom = $("<button/>");
+                    var btnJoinRoom = $("<button/>");
+
                     // var chkSubscribed = $("<input/>");
                     // var lblSubscribed = $("<label/>");
                     // chkSubscribed.attr("type", "checkbox");
@@ -198,18 +108,26 @@
                     // lblSubscribed.addClass("form-check-label");
                     // lblSubscribed.text(rooms[i].name);
                     btnRemoveRoom.attr("roomName", rooms[i].name);
-                    btnRemoveRoom.addClass("btn btn-danger btn-sm float-right oi oi-x");
+                    btnRemoveRoom.addClass("btn btn-danger btn-sm float-left oi oi-x");
                     btnRemoveRoom.click((e) => {
-                        leaveNewRoomClicked(e.currentTarget.getAttribute("roomname"));
+                        removeNewRoomClicked(e.currentTarget.getAttribute("roomname"));
                     });
+
+                    btnJoinRoom.attr("roomName", rooms[i].name);
+                    btnJoinRoom.addClass("btn btn-sm btn-success float-right oi oi-comment-square");
+                    btnJoinRoom.click((e) => {
+                        joinRoom(e.currentTarget.getAttribute("roomname"));
+                    });
+
                     // roomElement.prop("id", rooms[i].name);
                     // roomElement.addClass("user-li-item");
-                    roomElement.addClass("list-group-item list-group-item-action");
+                    roomElement.addClass("list-group-item list-group-item-action text-center");
                     roomElement.text(rooms[i].name);
                     // roomItemElement.append(chkSubscribed);
                     // roomItemElement.append(lblSubscribed);
                     // roomElement.append(roomItemElement);
                     roomElement.append(btnRemoveRoom);
+                    roomElement.append(btnJoinRoom);
                     roomListElement.append(roomElement);
                 }
                 roomListContainerElement.append(roomListElement);
@@ -232,8 +150,8 @@
 
             mainContainer.height(window.innerHeight);
 
-            $("#roomContainer").height((mainContainer.height() / 2)-2);
-            $("#x").height((mainContainer.height() / 2)-2);
+            $("#roomContainer").height((mainContainer.height() / 2) - 2);
+            $("#x").height((mainContainer.height() / 2) - 2);
 
             // messageList.height(messagesContainer.height() - messageBoxHeight);
             messageList.addClass("list-group-flush");
@@ -244,7 +162,7 @@
 
             for (var i = 0; i < messageListElements.length; i++) {
                 var messageListElement = $(messageListElements[i]);
-                messageListElement.height(window.innerHeight - (messageListElement[0].offsetTop + $("#messageBox").height())-3);
+                messageListElement.height(window.innerHeight - (messageListElement[0].offsetTop + $("#messageBox").height()) - 3);
             }
 
             // messageBox.width(messageListElements.width());
@@ -258,13 +176,21 @@
             $("#addRoomModal").modal("hide");
         }
 
-        function leaveNewRoomClicked(roomname) {
+        function removeNewRoomClicked(roomname) {
             var command = "/closeroom";
             addOrRemoveRoom(command, roomname);
         }
 
         function addOrRemoveRoom(command, roomName) {
             globalDefaultSocket.emit("message", command + " " + roomName);
+        }
+
+        function joinRoom(roomName) {
+            globalDefaultSocket.emit("joinRoom", roomName);
+        }
+
+         function leaveRoom(roomName) {
+            globalDefaultSocket.emit("leaveRoom", roomName);
         }
     </script>
     <div class="container">
@@ -292,8 +218,8 @@
             <div id="messagesContainer" class="messages-container col-md-8 col-xs-7 col-sm-8 col-lg-8 col-xl-9">
                 <nav>
                     <div class="nav nav-tabs" id="nav-tab" role="tablist">
-                        <a class="nav-item nav-link active" id="nav-home-tab" data-toggle="tab" href="#nav-home" role="tab"
-                            aria-controls="nav-home" aria-selected="true">Home</a>
+                        <a class="nav-item nav-link active tab-title" id="nav-home-tab" data-toggle="tab" href="#nav-home"
+                            role="tab" aria-controls="nav-home" aria-selected="true">Home</a>
                     </div>
                 </nav>
                 <div class="tab-content" id="nav-tabContent">
@@ -301,7 +227,7 @@
                         aria-labelledby="nav-home-tab">
                     </div>
                     <div id="messageBox" class="message-box">
-                        <form id="messageBoxForm" class="height-100" >
+                        <form id="messageBoxForm" class="height-100">
                             <span>
                                 <input class="height-100 width-100" id="m" autocomplete="off" />
                             </span>
