@@ -244,7 +244,7 @@
 
             for (var i = 0; i < messageListElements.length; i++) {
                 var messageListElement = $(messageListElements[i]);
-                messageListElement.height(window.innerHeight - (messageListElement[0].offsetTop + $("#messageBox").height()));
+                messageListElement.height(window.innerHeight - (messageListElement[0].offsetTop + $("#messageBox").height())-3);
             }
 
             // messageBox.width(messageListElements.width());
@@ -301,7 +301,7 @@
                         aria-labelledby="nav-home-tab">
                     </div>
                     <div id="messageBox" class="message-box">
-                        <form id="messageBoxForm" class="height-100" action="">
+                        <form id="messageBoxForm" class="height-100" >
                             <span>
                                 <input class="height-100 width-100" id="m" autocomplete="off" />
                             </span>
