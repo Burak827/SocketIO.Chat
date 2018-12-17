@@ -3,8 +3,7 @@
 
 <head>
     <title>Socket.IO chat</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
-        crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
     <style>
         * {
             margin: 0;
@@ -18,6 +17,7 @@
 
         body {
             font: 13px Helvetica, Arial;
+            overflow: hidden;
         }
 
         form {
@@ -64,21 +64,21 @@
         }
 
         .users-container {
-            border: 2px solid black;
+            border: 1px solid black;
             padding-left: 0px;
             padding-right: 0px;
             height: 100%;
         }
 
         .messages-container {
-            border: 2px solid black;
+            border: 1px solid black;
             padding-left: 0px;
             padding-right: 0px;
             height: 100%;
         }
 
         .room-container {
-            border: 2px solid black;
+            border: 1px solid black;
             padding-left: 0px;
             padding-right: 0px;
             height: 100%;
@@ -90,6 +90,10 @@
 
         .room-checkbox {
             float: left;
+        }
+
+        .message-list {
+            margin-bottom: 0px;
         }
 
         li {
@@ -123,9 +127,11 @@
                 var dateElement = $('<span/>');
 
                 dateElement.addClass("date-item");
+                dateElement.addClass("list-group");
                 dateElement.text(date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds());
 
                 messageElement.addClass("user-li-item");
+                messageElement.addClass("list-group-item");
                 messageElement.text(newMsg);
                 messageElement.text(newMsg.channel + " -> " + newMsg.userName + " : " + newMsg.messageText);
                 messageElement.append(dateElement);
@@ -138,37 +144,51 @@
 
                 var userListElement = $("<ul/>");
                 userListElement.addClass("user-ul-item");
+                userListElement.addClass("list-group");
 
                 for (var i = 0; i < users.length; i++) {
                     var userElement = $("<li/>");
                     userElement.prop("id", users[i].id);
                     userElement.text(users[i].name);
                     userElement.addClass("user-li-item");
+                    userElement.addClass("list-group-item");
                     userListElement.append(userElement);
                 }
+
                 userContainerElement.append(userListElement);
                 // $('#roomsInfo').append($('<li>').text(msg));
             });
+
+
 
             generalInfoSocket.on('roomInfo', (rooms) => {
                 var roomContainerElement = $('#roomContainer');
                 roomContainerElement.html("");
                 var roomListElement = $("<ul/>");
                 roomListElement.addClass("user-ul-item");
+                roomListElement.addClass("list-group");
 
                 for (var i = 0; i < rooms.length; i++) {
+                    var roomItemElement = $("<div/>");
                     var roomElement = $("<li/>");
                     var chkSubscribed = $("<input/>");
+                    var lblSubscribed = $("<label/>");
                     chkSubscribed.attr("type", "checkbox");
                     chkSubscribed.attr("roomName", rooms[i].name);
                     chkSubscribed.addClass("room-checkbox");
+                    chkSubscribed.addClass("form-check-input");
                     chkSubscribed.change(onRoomCheckBoxChanged);
+                    lblSubscribed.addClass("form-check-label");
+                    lblSubscribed.text(rooms[i].name);
+
 
                     // roomElement.prop("id", rooms[i].name);
-                    roomElement.text(rooms[i].name);
                     roomElement.addClass("user-li-item");
-
-                    roomElement.append(chkSubscribed);
+                    roomElement.addClass("list-group-item");
+                    roomItemElement.addClass("form-check");
+                    roomItemElement.append(chkSubscribed);
+                    roomItemElement.append(lblSubscribed);
+                    roomElement.append(roomItemElement);
                     roomListElement.append(roomElement);
                 }
                 roomContainerElement.append(roomListElement);
@@ -187,8 +207,11 @@
                 // var sendButton = $("#sendButton");
 
                 mainContainer.height(window.innerHeight);
+                mainContainer.addClass("row");
 
                 messageList.height(messagesContainer.height() - messageBoxHeight);
+                messageList.addClass("list-group-flush");
+                messageList.addClass("list-group");
                 messageBox.height(messageBoxHeight);
                 messageInput.width(messagesContainer.width());
             }
@@ -204,8 +227,8 @@
 
     </script>
     <div id="mainContainer">
-        <div id="userContainer" class="users-container col-md-2 col-xs-4 col-sm-3 col-lg-2 col-xl-1"></div>
-        <div id="messagesContainer" class="messages-container col-md-8 col-xs-4 col-sm-6 col-lg-8 col-xl-10">
+        <div id="userContainer" class="users-container col-md-3 col-xs-4 col-sm-3 col-lg-3 col-xl-2"></div>
+        <div id="messagesContainer" class="messages-container col-md-6 col-xs-4 col-sm-6 col-lg-6 col-xl-8">
             <ul id="messageList" class="message-list">
             </ul>
 
@@ -217,7 +240,7 @@
                 </form>
             </div>
         </div>
-        <div id="roomContainer" class="room-container col-md-2 col-xs-4 col-sm-3 col-lg-2 col-xl-1"></div>
+        <div id="roomContainer" class="room-container col-md-3 col-xs-4 col-sm-3 col-lg-3 col-xl-2"></div>
     </div>
 </body>
 
