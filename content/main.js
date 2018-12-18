@@ -1,11 +1,28 @@
 var globalDefaultSocket;
+var globalRooms;
+
+
+function onAddRoomModalButtonClicked(){
+    $('#roomName').focus();
+}
+function onChangeUsernameButtonClicked(){
+    debugger;
+    $('#userName').focus();
+}
+
+/*$('#changeUserNameModal').on('shown.bs.modal', function (e) {
+    $('#userName').focus();
+});
+$('#addRoomModal').on('shown.bs.modal', function (e) {
+    $('#userName').focus();
+});*/
+
 $(window).resize(function () {
     initUI();
 });
-var globalRooms;
+
 function onTextSubmit(e) {
     e.preventDefault();
-    debugger;
     let message = $(e.currentTarget).find("input").val();
     let channel = $(e.currentTarget).attr("target-channel");
     message = "@" + channel + " " + message;
@@ -147,7 +164,7 @@ $(function () {
         for (var i = 0; i < roomTitles.length; i++) {
             let roomId = roomTitles[i];
             if (!rooms.includes(roomId) && roomId != "Public") {
-                // leaveRoom(roomId);
+                 leaveRoom(roomId);
                 // closeRoom(roomId);
             }
         }
@@ -224,7 +241,6 @@ function openRoom(roomName) {
     ////TODO show olan tabe göre olmalı
     for (var i = 0; i < messageListElements.length; i++) {
         var messageListElement = $(messageListElements[i]);
-        debugger;
         messageListElement.height(window.innerHeight - ($(".tab-pane.active>.message-list")[0].offsetTop + messageBoxHeight) - 3);
     }
 }
@@ -266,6 +282,14 @@ function initUI() {
 
 }
 
+function changeUsernameClicked() {
+    var roomName = $("#userName").val();
+    var command = "/nickname";
+    globalDefaultSocket.emit("message", command + " " + roomName);
+    $("#userNameName").val("");
+    $("#changeUserNameModal").modal("hide");
+}
+
 function addNewRoomClicked() {
     var roomName = $("#roomName").val();
     var command = "/newRoom";
@@ -290,3 +314,4 @@ function joinRoom(roomName) {
 function leaveRoom(roomName) {
     globalDefaultSocket.emit("leaveRoom", roomName);
 }
+
