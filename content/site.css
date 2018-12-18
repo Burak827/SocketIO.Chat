@@ -51,13 +51,39 @@ form button {
 
 .user-ul-item {}
 
+.from-element{
+    color: #3b77ab;
+    font-weight: 700;
+}
+
+.text-element{
+    margin-left : 10px;
+    font-weight: 100;
+}
 .user-li-item {
     border: 1px solid rgb(235, 235, 235);
     padding-left: 10px;
 }
+.close-tab-button{
+    padding: 0.1rem 0.1rem;
+    font-size: 8px;
+}
+
+.remove-room-button{
+    padding: 0.1rem 0.1rem;
+    font-size: 8px;
+}
+.my-nav-button{
+    background-color: white;
+
+}
+.my-nav-button.active{
+    background-color: blue;
+}
 
 .users-container {
-    height: 50%;
+    height: 50%;   
+     overflow-y: scroll;
 }
 
 .messages-container {

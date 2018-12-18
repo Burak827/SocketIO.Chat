@@ -32,8 +32,17 @@ generalInfo.on('connection', (socket) => {
 io.on('connection', (socket) => {
     socket.on('message', (msg) => {
         var textSplitted = msg.split(" ");
+        var command = textSplitted[0].slice(1, textSplitted[0].length);
+        var restOfTheMessage = "";
+        var username = users[getUser(socket.id)].name;
+        for (var i = 1; i < textSplitted.length; i++) {
+            restOfTheMessage += textSplitted[i];
+            if (!(i == textSplitted.length - 1)) {
+                restOfTheMessage += " ";
+            }
+        }
+
         if (textSplitted[0][0] == "/") {
-            var command = textSplitted[0].slice(1, textSplitted[0].length);
             switch (command.toUpperCase()) {
                 case "newroom".toUpperCase():
                     var roomName = textSplitted[1];
@@ -49,22 +58,11 @@ io.on('connection', (socket) => {
                     break;
             }
         }
-        else if (textSplitted[0][0] == "@") {
-            var command = textSplitted[0].slice(1, textSplitted[0].length);
-            var restOfTheMessage = "";
-            var username = users[getUser(socket.id)].name;
-
-            for (var i = 1; i < textSplitted.length; i++) {
-                restOfTheMessage += textSplitted[i];
-                if (!(i == textSplitted.length - 1)) {
-                    restOfTheMessage += " ";
-                }
-            }
+        else if (textSplitted[0][0] == "@" && command != "Public") {
             io.to(command).emit("newMessage", { channel: command, messageText: restOfTheMessage, writtenBy: socket.id, userName: username, date: Date.now() });
         }
         else {
-            var username = users[getUser(socket.id)].name;
-            io.emit("newMessage", { channel: "Public", messageText: msg, writtenBy: socket.id, userName: username, date: Date.now() });
+            io.emit("newMessage", { channel: "Public", messageText: restOfTheMessage, writtenBy: socket.id, userName: username, date: Date.now() });
         }
     });
 
