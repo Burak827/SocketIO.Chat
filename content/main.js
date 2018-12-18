@@ -122,6 +122,9 @@ $(function () {
                 if (!roomTitles.includes(e.currentTarget.getAttribute("roomname"))) {
                     joinRoom(roomName);
                     openRoom(roomName);
+                    $('a.nav-link#pills-' + roomName + '-tab').tab('show');
+                } else {
+                    $('a.nav-link#pills-' + roomName + '-tab').tab('show');
                 }
             });
 
@@ -140,7 +143,7 @@ $(function () {
             let roomId = $(aElements[i]).attr("room-id");
             roomTitles.push(roomId);
         }
-        
+
         for (var i = 0; i < roomTitles.length; i++) {
             let roomId = roomTitles[i];
             if (!rooms.includes(roomId) && roomId != "Public") {
@@ -180,9 +183,10 @@ function openRoom(roomName) {
 
     var closeButton = $('<button class="btn btn-danger btn-sm float-left oi oi-x close-tab-button"/>');
     closeButton.click((e) => {
-        debugger;
+        let publicTabName = "home";
         closeRoom($(closeButton).parent().attr("room-id"));
         closeButton.remove();
+        $('a.nav-link#pills-' + publicTabName + '-tab').tab('show');
     });
 
     navLinkA.append(closeButton);
@@ -199,7 +203,6 @@ function openRoom(roomName) {
     var messageBoxForm = $('<form target-channel="' + roomName + '"class="message-box-form height-100"/>');
     var span = $("<span/>");
     var input = $('<input class="height-100 width-100"  autocomplete="off" id="m-' + roomName + '" /> ');
-
 
     messageBoxForm.submit(onTextSubmit);
     span.append(input);
@@ -221,7 +224,8 @@ function openRoom(roomName) {
     ////TODO show olan tabe göre olmalı
     for (var i = 0; i < messageListElements.length; i++) {
         var messageListElement = $(messageListElements[i]);
-        messageListElement.height(window.innerHeight - (messageListElements[0].offsetTop + $(".message-box").height()) - 3);
+        debugger;
+        messageListElement.height(window.innerHeight - ($(".tab-pane.active>.message-list")[0].offsetTop + messageBoxHeight) - 3);
     }
 }
 
@@ -257,7 +261,7 @@ function initUI() {
     ////TODO show olan tabe göre olmalı
     for (var i = 0; i < messageListElements.length; i++) {
         var messageListElement = $(messageListElements[i]);
-        messageListElement.height(window.innerHeight - (messageListElements[0].offsetTop + $(".message-box").height()) - 3);
+        messageListElement.height(window.innerHeight - ($(".tab-pane.active>.message-list")[0].offsetTop + messageBoxHeight) - 3);
     }
 
 }
